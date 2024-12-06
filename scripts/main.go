@@ -78,34 +78,32 @@ func main() {
 		return
 	}
 
-	// Create log.txt file
-	logFile, err := os.Create("log.txt")
-	if err != nil {
-		fmt.Printf("Error creating log file: %v\n", err)
-		return
-	}
-	defer logFile.Close()
+	totalCommits := 0
 
 	// Process commit data
 	for _, entry := range commitData {
 		for i := 0; i < entry.Commit; i++ {
-			// Write to log.txt
-			logEntry := fmt.Sprintf("Commit: %s-%d\n", entry.Date, i+1)
-			_, err := logFile.WriteString(logEntry)
+			// Prepare log entry
+			logEntry := fmt.Sprintf("Commit: %s-%d\nCommit for %s - #%d\n", entry.Date, i+1, entry.Date, i+1)
+
+			// Open logs.txt in append mode
+			f, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 			if err != nil {
-				fmt.Printf("Error writing to log file: %v\n", err)
+				fmt.Printf("Error opening logs.txt for appending: %v\n", err)
 				return
 			}
 
-			// Append data to a file
-			content := fmt.Sprintf("Date: %s, Commit number: %d\n", entry.Date, i+1)
-			err = os.WriteFile("metrics.txt", []byte(content), 0644)
+			// Write log entry
+			_, err = f.WriteString(logEntry)
 			if err != nil {
-				fmt.Printf("Error writing to file.txt: %v\n", err)
+				fmt.Printf("Error appending to logs.txt: %v\n", err)
+				f.Close() // Ensure the file is closed
 				return
 			}
+			f.Close() // Close the file after writing
 
-			cmd = exec.Command("git", "add", ".")
+			// Stage the file
+			cmd := exec.Command("git", "add", "logs.txt")
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 
@@ -127,11 +125,28 @@ func main() {
 				fmt.Printf("Error committing changes: %v\n", err)
 				return
 			}
+
+			totalCommits++
 		}
 	}
 
-	// Make the final commit with message "completed"
-	cmd = exec.Command("git", "add", ".")
+	// Append the total commits count to logs.txt
+	logSummary := fmt.Sprintf("\nTotal backdated commits made: %d\nTotal commits: %d", totalCommits, totalCommits+1)
+	f, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("Error opening logs.txt for appending: %v\n", err)
+		return
+	}
+	_, err = f.WriteString(logSummary)
+	if err != nil {
+		fmt.Printf("Error appending commit summary to logs.txt: %v\n", err)
+		f.Close() // Ensure we close the file
+		return
+	}
+	f.Close() // Ensure we close the file
+
+	// Stage the updated logs.txt
+	cmd = exec.Command("git", "add", "logs.txt")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -141,6 +156,7 @@ func main() {
 		return
 	}
 
+	// Commit the changes with the final message
 	cmd = exec.Command("git", "commit", "-m", "completed")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
