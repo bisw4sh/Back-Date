@@ -9,12 +9,44 @@ git commit --date='1999-10-31'
 1. Add the Github Access Token from [here](https://github.com/settings/tokens) and put in .env
 2. Type username and year, you would like to paint.
 3. Paint the graph with click(s)
-4. Press **Download** button, initiates the *backdates.json* file.
-5. Place it where *main.go* is, in **scripts** folder.
-6. Run the program
-```go
-go run main.go
+4. Press **Download** button, initiates the _backdates.json_ file.
+5. Run the program
+
+```sh
+./backdate --json ~/Downloads/backdates.json --repo ~/Downloads/hello
 ```
+
+> ./backdate depend on the output binary, choose by the below information in distribution.
+
 7. Repo has the necessary commit, push it to your github/gitlab to see contributions.
+
 ---
-*Note: didn't compile the go code for reasons, got to have **GO** in your system.*
+
+_Note: didn't compile the go code for reasons, got to have **GO** in your system._
+
+## Distribution
+
+1. Linux
+
+```sh
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o backdate-linux
+```
+
+2. macOS (Intel)
+
+```
+GOOS=darwin GOARCH=amd64 go build -o backdate-macos
+```
+
+3. macOS (Apple Silicon)
+
+```sh
+GOOS=darwin GOARCH=arm64 go build -o backdate-macos-arm
+```
+
+4. Windows
+
+```sh
+GOOS=windows GOARCH=amd64 go build -o backdate.exe
+```
+

@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 )
 
 type CommitData struct {
@@ -15,9 +15,38 @@ type CommitData struct {
 }
 
 func main() {
-	filePath := filepath.Join(".", "backdates.json")
+	jsonPath := flag.String(
+		"json",
+		"~/Downloads/backdates.json",
+		"Path to backdates.json (default: ~/Downloads/backdates.json)",
+	)
 
-	file, err := os.Open(filePath)
+	repoPath := flag.String(
+		"repo",
+		"",
+		"Path where the git repository should be created",
+	)
+	flag.Parse()
+
+	// Only check if repoPath is required
+	if *repoPath == "" {
+		fmt.Println("Usage:")
+		fmt.Println("  backdate --json /path/to/backdates.json --repo /path/to/repo")
+		fmt.Println("\nError: --repo flag is required")
+		os.Exit(1)
+	}
+
+	// Expand tilde in jsonPath
+	if (*jsonPath)[0] == '~' {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Printf("Error getting home directory: %v\n", err)
+			return
+		}
+		*jsonPath = home + (*jsonPath)[1:]
+	}
+
+	file, err := os.Open(*jsonPath)
 	if err != nil {
 		fmt.Printf("Error opening file: %v\n", err)
 		return
@@ -29,7 +58,6 @@ func main() {
 		fmt.Printf("Error reading file: %v\n", err)
 		return
 	}
-
 	// Parse the JSON data
 	var commitData []CommitData
 	err = json.Unmarshal(byteValue, &commitData)
@@ -38,23 +66,18 @@ func main() {
 		return
 	}
 
-	fmt.Print("Enter the directory name: ")
-	var dirName string
-	fmt.Scanln(&dirName)
+	
+err = os.MkdirAll(*repoPath, os.ModePerm)
+if err != nil {
+	fmt.Printf("Error creating repo directory: %v\n", err)
+	return
+}
 
-	// Create the directory if it doesn't exist
-	err = os.MkdirAll(dirName, os.ModePerm)
-	if err != nil {
-		fmt.Printf("Error creating directory: %v\n", err)
-		return
-	}
-
-	// Change to the directory
-	err = os.Chdir(dirName)
-	if err != nil {
-		fmt.Printf("Error changing directory: %v\n", err)
-		return
-	}
+err = os.Chdir(*repoPath)
+if err != nil {
+	fmt.Printf("Error changing directory: %v\n", err)
+	return
+}
 
 	// Initialize a Git repository
 	cmd := exec.Command("git", "init")
