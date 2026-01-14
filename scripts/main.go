@@ -14,6 +14,17 @@ type CommitData struct {
 	Commit int    `json:"commit"`
 }
 
+func expandPath(path string) (string, error) {
+	if len(path) > 0 && path[0] == '~' {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		return home + path[1:], nil
+	}
+	return path, nil
+}
+
 func main() {
 	jsonPath := flag.String(
 		"json",
@@ -37,13 +48,18 @@ func main() {
 	}
 
 	// Expand tilde in jsonPath
-	if (*jsonPath)[0] == '~' {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			fmt.Printf("Error getting home directory: %v\n", err)
-			return
-		}
-		*jsonPath = home + (*jsonPath)[1:]
+	
+	var err error
+	*jsonPath, err = expandPath(*jsonPath)
+	if err != nil {
+		fmt.Printf("Error resolving json path: %v\n", err)
+		return
+	}
+
+	*repoPath, err = expandPath(*repoPath)
+	if err != nil {
+		fmt.Printf("Error resolving repo path: %v\n", err)
+		return
 	}
 
 	file, err := os.Open(*jsonPath)

@@ -1,0 +1,14 @@
+pkgname=backdate-linux
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Backdate Git commits and paint GitHub contribution graph"
+arch=('x86_64')
+url="https://github.com/bisw4sh/Back-Date"
+license=('MIT')
+depends=('git')
+source=("backdate-linux")
+sha256sums=('SKIP')
+
+package() {
+  install -Dm755 backdate-linux "$pkgdir/usr/bin/backdate"
+}
