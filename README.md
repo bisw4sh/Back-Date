@@ -16,7 +16,7 @@ git commit --date='1999-10-31'
 ./backdate --json ~/Downloads/backdates.json --repo ~/Downloads/hello
 ```
 
-> --json flag can be omitted and that is the default file and path because the file will be downloaded with the given name and in that location unless default is changed or if there are multiple downloads of same file which will make incremented filenames.
+> --json flag can be omitted but that is the default file and path. Since, the file will be downloaded with the given name and in that location. Unless, default is changed or if there are multiple downloads of same file which will make incremented filenames.
 
 > ./backdate depend on the output binary, choose by the below information in distribution.
 
